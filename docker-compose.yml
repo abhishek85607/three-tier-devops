@@ -1,0 +1,64 @@
+services:
+  db:
+    image: mysql:8.4
+    container_name: hunarguru-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - hunarguru-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u${DB_USER}", "-p${DB_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  backend:
+    image: ${DOCKERHUB_USERNAME}/hunarguru-backend:latest
+    container_name: hunarguru-backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      DB_HOST: db
+      DB_PORT: ${DB_PORT}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      PORT: ${PORT}
+    networks:
+      - hunarguru-net
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    image: ${DOCKERHUB_USERNAME}/hunarguru-frontend:latest
+    container_name: hunarguru-frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    networks:
+      - hunarguru-net
+    depends_on:
+      - backend
+
+volumes:
+  mysql_data:
+
+networks:
+  hunarguru-net:
+    driver: bridge
