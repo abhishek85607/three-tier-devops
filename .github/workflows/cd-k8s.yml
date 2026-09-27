@@ -1,0 +1,38 @@
+name: CD - Update K8s Manifests
+
+on:
+  workflow_run:
+    workflows: ["CI - Build and Push Images"]
+    types:
+      - completed
+
+jobs:
+  update-manifests:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' && vars.DEPLOY_ENABLED == 'true' }}
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Extract Short SHA from CI run
+        id: vars
+        run: |
+          SHA="${{ github.event.workflow_run.head_sha }}"
+          echo "sha_short=${SHA:0:7}" >> $GITHUB_OUTPUT
+
+      - name: Update Image Tags in Manifests
+        run: |
+          sed -i 's|image: .*/hunarguru-backend:.*|image: ${{ secrets.DOCKERHUB_USERNAME }}/hunarguru-backend:${{ steps.vars.outputs.sha_short }}|g' k8s/backend.yaml
+          sed -i 's|image: .*/hunarguru-frontend:.*|image: ${{ secrets.DOCKERHUB_USERNAME }}/hunarguru-frontend:${{ steps.vars.outputs.sha_short }}|g' k8s/frontend.yaml
+
+      - name: Commit and Push Updated Manifests
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add k8s/backend.yaml k8s/frontend.yaml
+          git diff-index --quiet HEAD || git commit -m "deploy: pin backend and frontend to ${{ steps.vars.outputs.sha_short }} [skip ci]"
+          git push origin main
