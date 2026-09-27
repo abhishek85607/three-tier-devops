@@ -34,7 +34,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: abhiraj328/hunarguru-frontend:latest
+          image: abhiraj328/hunarguru-frontend:4d66f2e
           imagePullPolicy: IfNotPresent
           ports:
             - name: http

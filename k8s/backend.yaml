@@ -33,7 +33,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: abhiraj328/hunarguru-backend:latest
+          image: abhiraj328/hunarguru-backend:4d66f2e
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
