@@ -6,9 +6,11 @@ on:
       - main
     paths-ignore:
       - 'k8s/**'
+      - 'cluster-config/**'
       - 'docs/**'
       - 'README.md'
       - '.gitignore'
+      - '.trivyignore'
 
 jobs:
   build-and-push:
@@ -35,16 +37,42 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./backend
-          push: ${{ vars.DEPLOY_ENABLED == 'true' }}
-          tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/hunarguru-backend:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/hunarguru-backend:${{ steps.vars.outputs.sha_short }}
+          load: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/hunarguru-backend:${{ steps.vars.outputs.sha_short }}
+      - name: Run Trivy scan on Backend
+        uses: aquasecurity/trivy-action@master
+        with: 
+          image-ref: ${{ secrets.DOCKERHUB_USERNAME }}/hunarguru-backend:${{ steps.vars.outputs.sha_short }} 
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          severity: 'CRITICAL'
+
 
       - name: Build and Push Frontend Image
         uses: docker/build-push-action@v5
         with:
           context: ./frontend
-          push: ${{ vars.DEPLOY_ENABLED == 'true' }}
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/hunarguru-frontend:${{ steps.vars.outputs.sha_short }}
+      
+
+      - name: Run Trivy Scan for frontend
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ secrets.DOCKERHUB_USERNAME }}/hunarguru-frontend:${{ steps.vars.outputs.sha_short }}
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true 
+          severity: 'CRITICAL'
+
+      - name: Push Backed Image
+        if: vars.DEPLOY_ENABLED == 'true'
+        uses: docker/build-push-action@v5
+        with: 
+          context: ./frontend
+          push: true
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/hunarguru-frontend:latest
             ${{ secrets.DOCKERHUB_USERNAME }}/hunarguru-frontend:${{ steps.vars.outputs.sha_short }}
+
