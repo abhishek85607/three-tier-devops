@@ -12,7 +12,7 @@ spec:
   ports:
     - name: http
       port: 80
-      targetPort: 8080
+      targetPort: 80
     
 
 ---
@@ -51,7 +51,7 @@ spec:
                 - ALL
           ports:
             - name: http
-              containerPort: 8080
+              containerPort: 80
           volumeMounts:
             - name: nginx-cache
               mountPath: /var/cache/nginx
@@ -69,13 +69,13 @@ spec:
           livenessProbe:
             httpGet: 
               path: /
-              port: 8080
+              port: 80
             initialDelaySeconds: 5
             periodSeconds: 10
           readinessProbe:
             httpGet: 
               path: /
-              port: 8080
+              port: 80
             initialDelaySeconds: 2
             periodSeconds: 5 
       volumes:
