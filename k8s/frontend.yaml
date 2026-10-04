@@ -58,7 +58,7 @@ spec:
             - name: nginx-run
               mountPath: /var/run
             - name: tmp
-              mountpath: /tmp
+              mountPath: /tmp
           resources:
             requests:
               cpu: 50m
