@@ -41,7 +41,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: frontend
-          image: abhiraj328/hunarguru-frontend:latest
+          image: abhiraj328/hunarguru-frontend:a3a40cf
           imagePullPolicy: IfNotPresent
           securityContext:
             allowPrivilegeEscalation: false
