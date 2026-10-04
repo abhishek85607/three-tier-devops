@@ -31,10 +31,23 @@ spec:
       labels:
         app: backend   
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:  
+          type: RuntimeDefault
       containers:
         - name: backend
-          image: abhiraj328/hunarguru-backend:4d66f2e
+          image: abhiraj328/hunarguru-backend:latest
           imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
           ports:
             - name: http
               containerPort: 8080
@@ -43,8 +56,6 @@ spec:
               value: mysql
             - name: DB_PORT
               value: "3306"
-            - name: PORT 
-              value: "8080"
             - name: DB_USER
               valueFrom:
                 secretKeyRef:
@@ -60,11 +71,14 @@ spec:
                 secretKeyRef:
                   name: hunarguru-db
                   key: MYSQL_DATABASE
+            - name: PORT
+              value: "8080"      
           resources: 
             requests:
-              cpu: 100m
+              cpu: 50m
               memory: 64Mi
             limits:
+              cpu: 200m
               memory: 128Mi
           livenessProbe:
             httpGet:
