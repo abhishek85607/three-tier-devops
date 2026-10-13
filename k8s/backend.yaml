@@ -22,7 +22,7 @@ metadata:
   name: backend
   namespace: hunarguru
 spec: 
-  replicas: 1
+ # replicas: 1
   selector:
     matchLabels:
       app: backend
