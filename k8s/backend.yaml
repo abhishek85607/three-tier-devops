@@ -40,7 +40,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: backend
-          image: abhiraj328/hunarguru-backend:8fe9580
+          image: abhiraj328/hunarguru-backend:latest
           imagePullPolicy: IfNotPresent
           securityContext:
             allowPrivilegeEscalation: false
